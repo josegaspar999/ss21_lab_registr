@@ -1,4 +1,4 @@
-﻿function ret= groups_manage( op, a1 )
+function ret= groups_manage( op, a1 )
 
 % March 2022, J. Gaspar
 

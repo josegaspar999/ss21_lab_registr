@@ -1,4 +1,4 @@
-﻿function ret= shifts_info(op, a1)
+function ret= shifts_info(op, a1)
 % Manage shifts info
 
 % March 2022, J. Gaspar

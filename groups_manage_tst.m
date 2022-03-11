@@ -1,4 +1,4 @@
-﻿function groups_manage_tst( tstId )
+function groups_manage_tst( tstId )
 if nargin<1
     tstId= 25; %24; %23; %22; %21; %20; %11; %10; %3; %2; %1;
 end
