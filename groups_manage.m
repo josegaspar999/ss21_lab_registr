@@ -15,8 +15,9 @@ switch op
         shifts_info('ini_flags');
         Glst= []; % force empty
         groups_manage('load');
-        for i= 1:length(Glst)
-            groups_manage('add', Glst{i} );
+        Glst2= Glst; Glst= [];
+        for i= 1:length(Glst2)
+            groups_manage('add', Glst2{i} );
         end
         
     case 'load'
@@ -28,7 +29,7 @@ switch op
     case 'save'
         % groups_manage('save')
         fname= groups_manage_datafile;
-        save( fname, 'Glst' );
+        save( fname, '-6', 'Glst' );
 
     case 'add'
         nums= a1;
@@ -60,10 +61,16 @@ switch op
 
     case 'show'
         % usage: groups_manage('show')
-        %groups_manage('ini')
+        % emtpy data, try a 'ini'?
+        if isempty(Glst)
+            %s= input('List of groups empty, try "ini" to load it y/n? ', 's');
+            if 1 %strcmpi(s, 'y')
+                groups_manage('ini');
+            end
+        end
         show_groups()
 
-    case 'show_nums_names'
+    case {'show_fenix', 'show_nums_names'}
         % specific usage
         show_nums_names()
         
@@ -72,7 +79,7 @@ switch op
         show_num_name( [], a1, [] );
         
     case 'mygroup'
-        % main usage: groups_manage('mygroup')
+        % usage: groups_manage('mygroup')
         groups_manage('ini')
         groups_manage('make')
         groups_manage('save')
@@ -80,6 +87,13 @@ switch op
     otherwise
         error('inv op "%s"', op)
 end
+return % end of main function
+
+
+% -------------------------------------------------------------------------
+function fname= groups_manage_datafile
+%fname= './groups_manage.mat';
+fname= './data2/groups_manage.mat';
 
 
 % -------------------------------------------------------------------------
@@ -122,11 +136,6 @@ flag= 1; % equal nums, return true
 
 
 % -------------------------------------------------------------------------
-function fname= groups_manage_datafile
-%fname= './groups_manage.mat';
-fname= './data2/groups_manage.mat';
-
-
 function show_groups( options )
 if nargin<1
     options= [];
@@ -179,6 +188,7 @@ for n= nums
 end
 
 
+% -------------------------------------------------------------------------
 function show_nums_names( SSS, shiftId, linesLst, options )
 if nargin<1
     SSS= shifts_info('get');
@@ -199,6 +209,8 @@ for i= linesLst(:)'
     show_num_name( SSS, num, options );
 end
 
+return % end of function
+
 
 function show_num_name( SSS, num, options )
 if isempty(SSS)
@@ -209,6 +221,7 @@ shShiftFlag= 1; %0;
 if isfield(options, 'shShiftFlag')
     shShiftFlag= options.shShiftFlag;
 end
+
 ret= shifts_info( 'find_num', num );
 if isempty(ret.ij) %~ret.foundFlag
     %warning('Number %d not found or already used.', num)
@@ -220,13 +233,19 @@ shiftId= ret.ij(1);
 lineId= ret.ij(2);
 x= SSS{shiftId};
 if shShiftFlag
-    fprintf(1, '[shift %d] ', shiftId );
+    doneFlag= '+';
+    if ~ret.foundFlag
+        % not found means registered
+        doneFlag= '.';
+    end
+    fprintf(1, '[shift %d]%c ', shiftId, doneFlag );
 end
 fprintf(1, '%d\t%s\n', x{lineId,2}, x{lineId,3} );
 
 return
 
 
+% -------------------------------------------------------------------------
 function ret= check_num( num, shiftId )
 if nargin<2
     shiftId= [];
@@ -276,6 +295,37 @@ if isfield(ret, 'err')
 end
 
 
+function nums2= input_nums3( str, nums, shiftId, nRetries )
+if ~isempty(nums)
+    nums2= nums(2:end);
+    return
+end
+
+error('under construction')
+nums2= [];
+% Enter 3 student numbers separated by commas, e.g. 99999, 88888, 77777
+x= input( str, 's' );
+
+while nRetries>0
+    [ret, num]= input_num( str, nums, numsInd, shiftId );
+    if ~isfield(ret, 'err')
+        break
+    end
+    fprintf(1, 'ERR: %s\n', ret.err);
+    nRetries= nRetries-1;
+end
+if isfield(ret, 'err')
+    % fail with error message
+    error(ret.err)
+end
+
+
+% -------------------------------------------------------------------------
+function sh_turned_off_message()
+fprintf(1, 'Hello all, this site is closed, does not accept more submissions\n');
+
+
+% -------------------------------------------------------------------------
 function mk_group( nums )
 % CLI to define groups
 
@@ -283,7 +333,7 @@ function mk_group( nums )
 % groups_manage( 'mygroup' )
 
 % Enter your student number
-[~, num]= input_num2( 'Enter your student number: ', nums, 1, [], 3 );
+[~, num]= input_num2( 'Enter your student number e.g. 123456: ', nums, 1, [], 3 );
 
 % find all colleagues
 ret= shifts_info( 'find_num_alt', num );
